@@ -150,27 +150,6 @@
             box-shadow: 2px 10px rgba(0, 180, 216, 0.3);
         }
 
-        .rotate-message {
-            display: none;
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            text-align: center;
-            background-color: rgba(11, 15, 26, 0.95);
-            padding: 20px;
-            border-radius: 10px;
-            z-index: 200;
-            font-size: 1.2rem;
-            max-width: 80%;
-            border: 2px solid #00b4d8;
-            box-shadow: 0 0 20px #00b4d8;
-        }
-
-        .rotate-message p {
-            margin-top: 10px;
-        }
-
         /* New and updated text styles for better visual hierarchy */
         .neon-title {
             font-size: 3rem;
@@ -238,25 +217,26 @@
             }
         }
         
-        @media (orientation: portrait) and (max-width: 800px) {
-            .game-container {
-                display: none;
-            }
-            .start-screen, .game-over-screen {
-                display: none;
-            }
-            .rotate-message {
-                display: block;
-            }
+        #jumpButton {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            padding: 15px 30px;
+            font-size: 1.5rem;
+            background: linear-gradient(135deg, #f0f8ff, #8be1ff);
+            color: #0b0f1a;
+            border: 2px solid #00b4d8;
+            border-radius: 50px;
+            box-shadow: 0 0 15px #8be1ff, 0 0 25px #00b4d8;
+            cursor: pointer;
+            display: none; /* Hidden by default */
+            transition: all 0.2s ease-in-out;
+            z-index: 100;
         }
-
-        @media (orientation: landscape) and (max-width: 800px) {
-            .rotate-message {
-                display: none;
-            }
-            .game-container {
-                display: flex;
-            }
+        
+        #jumpButton:active {
+            transform: scale(0.95);
+            box-shadow: 0 0 5px #8be1ff, 0 0 10px #00b4d8;
         }
 
     </style>
@@ -266,12 +246,7 @@
         <div class="background-stars-1"></div>
         <div class="background-stars-2"></div>
 
-        <div class="rotate-message" id="rotateMessage">
-            <p>Please rotate your device to landscape mode to play.</p>
-            <p class="text-4xl mt-4">🔄</p>
-        </div>
-
-        <div class="game-container">
+        <div class="game-container" style="display: none;">
             <div class="ui-panel">
                 <h1 class="text-xl font-bold">5oto 5oto Rush</h1>
                 <div class="flex items-center gap-4">
@@ -281,13 +256,15 @@
             <canvas id="gameCanvas"></canvas>
         </div>
 
-        <div id="startScreen" class="start-screen">
+        <button id="jumpButton" class="font-bold">Jump</button>
+
+        <div id="startScreen" class="start-screen" style="display: none;">
             <h2 class="font-bold mb-4 neon-title text-white">5oto 5oto Rush</h2>
             <p class="mb-4 subtitle text-blue-300">3ndak Tkhser</p>
             <button id="startGameBtn" class="btn">Start</button>
         </div>
 
-        <div id="gameOverScreen" class="game-over-screen">
+        <div id="gameOverScreen" class="game-over-screen" style="display: none;">
             <h2 class="font-bold mb-4 game-over-title">Game Over!</h2>
             <p class="mb-4 text-xl">Your final score was: <span id="finalScore" class="final-score">0</span></p>
             <button id="retryBtn" class="btn">3awed</button>
@@ -305,8 +282,8 @@
         const finalScoreDisplay = document.getElementById('finalScore');
         const retryBtn = document.getElementById('retryBtn');
         const gameContainer = document.querySelector('.game-container');
-        const rotateMessage = document.getElementById('rotateMessage');
         const gameWrapper = document.querySelector('.game-wrapper');
+        const jumpButton = document.getElementById('jumpButton');
 
         let isGameRunning = false;
         let isGameOverState = false;
@@ -319,14 +296,14 @@
         let timeSinceLastObstacle = 0;
         let timeSinceLastPill = 0;
         const gameAspectRatio = 2 / 1;
-        const mobileScale = 1.3;
+        const mobileElementScale = 1.3;
 
         // --- Audio elements ---
         const bgm = new Audio('https://www.dropbox.com/scl/fi/2oea5f5x1ye2b6hwdegot/5oto-BGM.mp3?rlkey=trsq4q6xwdi2dyxfyfna1c27z&dl=1');
         const jumpSound = new Audio('https://www.dropbox.com/scl/fi/jw4nc9cvrebquzbmh6lj5/jump-scare-scream-x.mp3?rlkey=hlhw86ww96rh392jt7t0u846v&dl=1');
         const gameOverSound = new Audio('https://www.dropbox.com/scl/fi/6hiazk6htgw5m1umjdqoo/GAME-OVER-5oto.mp3?rlkey=u2a9bk6cayl757lxiyredluvw&dl=1');
         const mehdiGiftTrapSound = new Audio('https://www.dropbox.com/scl/fi/7v7qosar34g0srjimuzgg/MEHDI-GIFT-TRAP.mp3?rlkey=ysbc9oufg35qhaglguy51041y&st=k1prokrk&dl=1');
-
+        
         bgm.loop = true;
 
         function isMobileDevice() {
@@ -524,6 +501,7 @@
 
         let viagraText = null;
         let ground;
+        let currentScale = 1;
 
         // --- Game Logic Functions ---
         function resizeGame() {
@@ -543,9 +521,11 @@
             canvas.height = newHeight;
             baseGroundLevel = canvas.height - 0.05 * canvas.height;
             
-            // Re-initialize game elements with new dimensions
+            currentScale = isMobileDevice() ? mobileElementScale : 1;
+            
+            // Re-initialize game elements with new dimensions and scaling
             if (player) {
-                player.size = 0.125 * canvas.height;
+                player.size = (0.125 * canvas.height) * currentScale;
                 player.y = baseGroundLevel - player.size;
             }
             if (ground) {
@@ -563,20 +543,15 @@
             let currentGroundLevel = baseGroundLevel;
             let fatalCollision = false;
 
-            const scaleFactor = isMobileDevice() ? mobileScale : 1;
-            const offsetX = (canvas.width * (scaleFactor - 1)) / 2;
-            const offsetY = (canvas.height * (scaleFactor - 1)) / 2;
-
             for (const obstacle of obstacles) {
                 const playerLeft = player.x;
                 const playerRight = player.x + player.size;
                 const playerTop = player.y;
                 const playerBottom = player.y + player.size;
-
-                const obstacleLeft = (obstacle.x * scaleFactor) - offsetX;
-                const obstacleRight = (obstacle.x + obstacle.width) * scaleFactor - offsetX;
-                const obstacleTop = (obstacle.y * scaleFactor) - offsetY;
-                const obstacleBottom = (obstacle.y + obstacle.height) * scaleFactor - offsetY;
+                
+                const obstacleLeft = obstacle.x;
+                const obstacleRight = obstacle.x + obstacle.width;
+                const obstacleTop = obstacle.y;
 
                 if (playerRight > obstacleLeft && playerLeft < obstacleRight && playerBottom > obstacleTop) {
                     if (obstacle.type === 'square' && player.y + player.size <= obstacleTop + player.velocityY + 5 && player.velocityY >= 0) {
@@ -600,10 +575,6 @@
         }
         
         function checkPillCollision() {
-            const scaleFactor = isMobileDevice() ? mobileScale : 1;
-            const offsetX = (canvas.width * (scaleFactor - 1)) / 2;
-            const offsetY = (canvas.height * (scaleFactor - 1)) / 2;
-
             for (let i = pills.length - 1; i >= 0; i--) {
                 const pill = pills[i];
                 if (!pill.collected) {
@@ -612,10 +583,10 @@
                     const playerTop = player.y;
                     const playerBottom = player.y + player.size;
                     
-                    const pillLeft = (pill.x * scaleFactor) - offsetX;
-                    const pillRight = (pill.x + pill.size) * scaleFactor - offsetX;
-                    const pillTop = (pill.y * scaleFactor) - offsetY;
-                    const pillBottom = (pill.y + pill.size) * scaleFactor - offsetY;
+                    const pillLeft = pill.x;
+                    const pillRight = pill.x + pill.size;
+                    const pillTop = pill.y;
+                    const pillBottom = pill.y + pill.size;
 
                     if (playerRight > pillLeft && playerLeft < pillRight && playerBottom > pillTop && playerTop < pillBottom) {
                         pill.collected = true;
@@ -631,7 +602,7 @@
         function generateWorldElements(timestamp) {
             if (timestamp - timeSinceLastObstacle > Math.random() * 2500 + 1500) {
                 let obstacle;
-                const obstacleSize = 0.1 * canvas.height;
+                const obstacleSize = (0.1 * canvas.height) * currentScale;
                 if (Math.random() > 0.5) {
                     obstacle = new Obstacle(canvas.width, baseGroundLevel - obstacleSize, obstacleSize, obstacleSize, 'triangle');
                 } else {
@@ -642,7 +613,7 @@
             }
 
             if (timestamp - timeSinceLastPill > 15000) {
-                const pillSize = 0.05 * canvas.height;
+                const pillSize = (0.05 * canvas.height) * currentScale;
                 const pill = new Pill(canvas.width + 100, baseGroundLevel - pillSize, pillSize);
                 pills.push(pill);
                 timeSinceLastPill = timestamp;
@@ -661,14 +632,6 @@
             ctx.setTransform(1, 0, 0, 1, offsetX, offsetY);
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             
-            ctx.save();
-            if (isMobileDevice()) {
-                ctx.scale(mobileScale, mobileScale);
-                const scaleOffsetX = (canvas.width * (mobileScale - 1)) / (2 * mobileScale);
-                const scaleOffsetY = (canvas.height * (mobileScale - 1)) / (2 * mobileScale);
-                ctx.translate(-scaleOffsetX, -scaleOffsetY);
-            }
-
             ground.update();
             ground.draw();
 
@@ -725,7 +688,6 @@
                     viagraText = null;
                 }
             }
-            ctx.restore();
 
             if (isGameRunning) {
                  scoreDisplay.textContent = score;
@@ -749,13 +711,14 @@
             score = 0;
             scoreDisplay.textContent = '0';
             resizeGame(); // Re-size everything at the start
-            player = new Player(0.0625 * canvas.width, baseGroundLevel - 0.125 * canvas.height, 0.125 * canvas.height);
+            const playerSize = (0.125 * canvas.height) * currentScale;
+            player = new Player(0.0625 * canvas.width, baseGroundLevel - playerSize, playerSize);
             obstacles = [];
             pills = [];
             viagraText = null;
             ground = new InfiniteGround(baseGroundLevel, 0.05 * canvas.height);
             particles = [];
-            obstacleSpeed = 0.00625 * canvas.width;
+            obstacleSpeed = (0.00625 * canvas.width) * currentScale;
             timeSinceLastObstacle = 0;
             timeSinceLastPill = performance.now();
             bgm.currentTime = 0;
@@ -786,9 +749,15 @@
                 handleJump();
             }
         });
+        
+        jumpButton.addEventListener('click', () => {
+            handleJump();
+        });
 
         canvas.addEventListener('click', () => {
-            handleJump();
+             if (!isMobileDevice()) {
+                handleJump();
+            }
         });
         
         startGameBtn.addEventListener('click', startGame);
@@ -800,22 +769,31 @@
 
         function checkOrientation() {
             const isMobile = window.matchMedia("(max-width: 800px)").matches;
-            if (isMobile && window.innerHeight > window.innerWidth) {
+            const isPortrait = window.innerHeight > window.innerWidth;
+
+            if (isMobile && isPortrait) {
                 gameContainer.style.display = 'none';
                 startScreen.style.display = 'none';
                 gameOverScreen.style.display = 'none';
-                rotateMessage.style.display = 'block';
+                jumpButton.style.display = 'none';
             } else {
-                rotateMessage.style.display = 'none';
+                gameContainer.style.display = 'flex';
                 resizeGame();
+                if (isMobile) {
+                    jumpButton.style.display = 'block';
+                } else {
+                    jumpButton.style.display = 'none';
+                }
+
                 if (!isGameRunning && !isGameOverState) {
-                    gameContainer.style.display = 'flex';
                     startScreen.style.display = 'flex';
-                } else if (isGameRunning) {
-                    gameContainer.style.display = 'flex';
+                    gameOverScreen.style.display = 'none';
                 } else if (isGameOverState) {
-                    gameContainer.style.display = 'flex';
+                    startScreen.style.display = 'none';
                     gameOverScreen.style.display = 'flex';
+                } else {
+                    startScreen.style.display = 'none';
+                    gameOverScreen.style.display = 'none';
                 }
             }
         }
