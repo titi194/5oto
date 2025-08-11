@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>5oto 5oto Rush</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+        
+        /* Base styles for the body and game container */
+        body {
+            font-family: 'Press Start 2P', monospace;
+            background-color: #0b0f1a;
+            color: #e0f2fe;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            min-height: 100vh;
+            margin: 0;
+            overflow: hidden;
+            text-shadow: 2px 2px #000;
+        }
+
+        .game-wrapper {
+            position: relative;
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        .background-stars-1, .background-stars-2 {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            animation: moveBackground 150s linear infinite;
+            z-index: -2;
+        }
+        
+        .background-stars-1 {
+            background-image: url('https://placehold.co/1000x500/0b0f1a/e0f2fe?text=');
+            opacity: 0.1;
+        }
+
+        .background-stars-2 {
+            background-image: url('https://placehold.co/1000x500/0b0f1a/e0f2fe?text=');
+            animation-duration: 200s;
+            opacity: 0.05;
+        }
+
+        @keyframes moveBackground {
+            from { background-position: 0 0; }
+            to { background-position: -2000px 0; }
+        }
+
+        /* Responsive canvas styling */
+        canvas {
+            border: 4px solid #00b4d8;
+            background-color: #1a2a44;
+            background-image: 
+                linear-gradient(rgba(0, 180, 216, 0.5) 2px, transparent 2px), 
+                linear-gradient(90deg, rgba(0, 180, 216, 0.2) 1px, transparent 1px);
+            background-size: 100% 4px, 4px 100%;
+            box-shadow: 0 0 20px #00b4d8, 0 0 40px #0077b6;
+            border-radius: 12px;
+            cursor: pointer;
+            touch-action: none;
+            image-rendering: pixelated;
+        }
+        
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            padding: 20px;
+            width: 100%;
+            box-sizing: border-box;
+            max-width: 900px;
+        }
+        
+        .ui-panel {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            max-width: 800px;
+            padding: 10px;
+            box-sizing: border-box;
+            align-items: center;
+        }
+
+        /* Screen overlays (start, game over) */
+        .start-screen, .game-over-screen {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            background-color: rgba(11, 15, 26, 0.95);
+            backdrop-filter: blur(5px);
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 0 30px #00b4d8;
+            z-index: 100;
+            animation: fadeIn 0.5s ease-in-out;
+            width: 90%;
+            max-width: 400px;
+            border: 2px solid #00b4d8;
+        }
+
+        .game-over-screen {
+            display: none;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* Animated buttons */
+        .btn {
+            background: linear-gradient(135deg, #00b4d8, #0077b6);
+            color: white;
+            padding: 14px 28px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            border: none;
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out, background 0.2s ease-in-out;
+            box-shadow: 0 4px 15px rgba(0, 180, 216, 0.4);
+            text-transform: uppercase;
+            font-size: 1rem;
+        }
+        
+        .btn:hover {
+            background: linear-gradient(135deg, #0077b6, #005f9c);
+            transform: translateY(-4px) scale(1.05);
+            box-shadow: 8px 10px rgba(0, 180, 216, 0.6);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+            box-shadow: 2px 10px rgba(0, 180, 216, 0.3);
+        }
+
+        .rotate-message {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            background-color: rgba(11, 15, 26, 0.95);
+            padding: 20px;
+            border-radius: 10px;
+            z-index: 200;
+            font-size: 1.2rem;
+            max-width: 80%;
+            border: 2px solid #00b4d8;
+            box-shadow: 0 0 20px #00b4d8;
+        }
+
+        .rotate-message p {
+            margin-top: 10px;
+        }
+
+        /* New and updated text styles for better visual hierarchy */
+        .neon-title {
+            font-size: 3rem;
+            text-shadow: 0 0 10px #00b4d8, 0 0 20px #00b4d8, 0 0 30px #0077b6;
+            animation: pulse 1.5s infinite alternate;
+        }
+
+        .subtitle {
+            font-size: 1.25rem;
+            color: #8be1ff;
+            margin-top: -1rem;
+        }
+        
+        .score-text {
+            font-size: 1.5rem;
+            color: #ff0077;
+            text-shadow: 0 0 5px #ff0077;
+        }
+
+        .game-over-title {
+            font-size: 3rem;
+            color: #ff0077;
+            text-shadow: 0 0 10px #ff0077, 0 0 20px #ff0077;
+        }
+
+        .final-score {
+            font-size: 2rem;
+            color: #ff0077;
+            text-shadow: 0 0 5px #ff0077;
+        }
+
+        @keyframes pulse {
+            from { text-shadow: 0 0 10px #00b4d8, 0 0 20px #00b4d8; }
+            to { text-shadow: 0 0 15px #00b4d8, 0 0 30px #0077b6; }
+        }
+        
+        /* Media queries for better mobile experience */
+        @media (max-width: 600px) {
+            h1.text-xl {
+                font-size: 1.5rem;
+            }
+            .ui-panel {
+                flex-direction: column;
+                gap: 10px;
+            }
+            .btn {
+                width: 100%;
+                font-size: 0.9rem;
+            }
+            .start-screen, .game-over-screen {
+                padding: 20px;
+                max-width: 300px;
+            }
+            .neon-title {
+                font-size: 2rem;
+            }
+            .game-over-title {
+                font-size: 2.5rem;
+            }
+            .final-score {
+                font-size: 1.5rem;
+            }
+            .subtitle {
+                font-size: 1rem;
+            }
+        }
+        
+        @media (orientation: portrait) and (max-width: 800px) {
+            .game-container {
+                display: none;
+            }
+            .start-screen, .game-over-screen {
+                display: none;
+            }
+            .rotate-message {
+                display: block;
+            }
+        }
+
+        @media (orientation: landscape) and (max-width: 800px) {
+            .rotate-message {
+                display: none;
+            }
+            .game-container {
+                display: flex;
+            }
+        }
+
+    </style>
+</head>
+<body>
+    <div class="game-wrapper">
+        <div class="background-stars-1"></div>
+        <div class="background-stars-2"></div>
+
+        <div class="rotate-message" id="rotateMessage">
+            <p>Please rotate your device to landscape mode to play.</p>
+            <p class="text-4xl mt-4">🔄</p>
+        </div>
+
+        <div class="game-container">
+            <div class="ui-panel">
+                <h1 class="text-xl font-bold">5oto 5oto Rush</h1>
+                <div class="flex items-center gap-4">
+                    <p class="text-lg">Score: <span id="score" class="score-text">0</span></p>
+                </div>
+            </div>
+            <canvas id="gameCanvas"></canvas>
+        </div>
+
+        <div id="startScreen" class="start-screen">
+            <h2 class="font-bold mb-4 neon-title text-white">5oto 5oto Rush</h2>
+            <p class="mb-4 subtitle text-blue-300">3ndak Tkhser</p>
+            <button id="startGameBtn" class="btn">Start</button>
+        </div>
+
+        <div id="gameOverScreen" class="game-over-screen">
+            <h2 class="font-bold mb-4 game-over-title">Game Over!</h2>
+            <p class="mb-4 text-xl">Your final score was: <span id="finalScore" class="final-score">0</span></p>
+            <button id="retryBtn" class="btn">3awed</button>
+        </div>
+    </div>
+
+    <script>
+        // --- Game Setup and Initialization ---
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const scoreDisplay = document.getElementById('score');
+        const startScreen = document.getElementById('startScreen');
+        const startGameBtn = document.getElementById('startGameBtn');
+        const gameOverScreen = document.getElementById('gameOverScreen');
+        const finalScoreDisplay = document.getElementById('finalScore');
+        const retryBtn = document.getElementById('retryBtn');
+        const gameContainer = document.querySelector('.game-container');
+        const rotateMessage = document.getElementById('rotateMessage');
+        const gameWrapper = document.querySelector('.game-wrapper');
+
+        let isGameRunning = false;
+        let isGameOverState = false;
+        let score = 0;
+        let player, obstacles, pills;
+        let obstacleSpeed;
+        let particles = [];
+        let shakeTime = 0;
+        let baseGroundLevel;
+        let timeSinceLastObstacle = 0;
+        let timeSinceLastPill = 0;
+        const gameAspectRatio = 2 / 1;
+        const mobileScale = 1.3;
+
+        // --- Audio elements ---
+        const bgm = new Audio('https://www.dropbox.com/scl/fi/2oea5f5x1ye2b6hwdegot/5oto-BGM.mp3?rlkey=trsq4q6xwdi2dyxfyfna1c27z&dl=1');
+        const jumpSound = new Audio('https://www.dropbox.com/scl/fi/jw4nc9cvrebquzbmh6lj5/jump-scare-scream-x.mp3?rlkey=hlhw86ww96rh392jt7t0u846v&dl=1');
+        const gameOverSound = new Audio('https://www.dropbox.com/scl/fi/6hiazk6htgw5m1umjdqoo/GAME-OVER-5oto.mp3?rlkey=u2a9bk6cayl757lxiyredluvw&dl=1');
+        const mehdiGiftTrapSound = new Audio('https://www.dropbox.com/scl/fi/7v7qosar34g0srjimuzgg/MEHDI-GIFT-TRAP.mp3?rlkey=ysbc9oufg35qhaglguy51041y&st=k1prokrk&dl=1');
+
+        bgm.loop = true;
+
+        function isMobileDevice() {
+            return window.innerWidth < 800;
+        }
+
+        // --- Game Classes ---
+
+        class Player {
+            constructor(x, y, size) {
+                this.x = x;
+                this.y = y;
+                this.size = size;
+                this.velocityY = 0;
+                this.gravity = 0.001 * canvas.height;
+                this.isJumping = false;
+                this.isVisible = true;
+            }
+
+            draw() {
+                if (this.isVisible) {
+                    ctx.font = `${this.size}px sans-serif`;
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'top';
+                    ctx.fillText('🧔🏾', this.x + this.size / 2, this.y);
+                }
+            }
+
+            update(currentGroundLevel) {
+                this.velocityY += this.gravity;
+                this.y += this.velocityY;
+
+                if (this.y >= currentGroundLevel - this.size) {
+                    this.y = currentGroundLevel - this.size;
+                    this.isJumping = false;
+                    this.velocityY = 0;
+                }
+            }
+
+            jump() {
+                if (!this.isJumping) {
+                    this.isJumping = true;
+                    this.velocityY = -0.025 * canvas.height;
+                    jumpSound.currentTime = 0;
+                    jumpSound.play();
+                }
+            }
+        }
+
+        class Obstacle {
+            constructor(x, y, width, height, type) {
+                this.x = x;
+                this.y = y;
+                this.width = width;
+                this.height = height;
+                this.type = type;
+                this.color = '#ff0077';
+                this.outlineColor = '#ffffff';
+                this.hasPlayedSound = false;
+            }
+
+            draw() {
+                ctx.shadowColor = this.color;
+                ctx.shadowBlur = 15;
+                ctx.fillStyle = this.color;
+                ctx.strokeStyle = this.outlineColor;
+                ctx.lineWidth = 4;
+
+                ctx.font = `${this.height}px sans-serif`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'bottom';
+                
+                if (this.type === 'square') {
+                    ctx.fillText('🚽', this.x + this.width / 2, this.y + this.height);
+                } else if (this.type === 'triangle') {
+                    ctx.fillText('💩', this.x + this.width / 2, this.y + this.height);
+                }
+                
+                ctx.shadowBlur = 0;
+                ctx.textAlign = 'start';
+                ctx.textBaseline = 'alphabetic';
+            }
+            
+            update() {
+                this.x -= obstacleSpeed;
+            }
+        }
+
+        class Pill {
+            constructor(x, y, size) {
+                this.x = x;
+                this.y = y;
+                this.size = size;
+                this.emoji = '💊';
+                this.isVisible = true;
+                this.collected = false;
+            }
+
+            draw() {
+                if (!this.collected) {
+                    ctx.shadowColor = '#00faff';
+                    ctx.shadowBlur = 10;
+                    ctx.font = `${this.size}px sans-serif`;
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(this.emoji, this.x + this.size / 2, this.y + this.size / 2);
+                    ctx.shadowBlur = 0;
+                }
+            }
+
+            update() {
+                this.x -= obstacleSpeed;
+            }
+        }
+
+        class FloatingText {
+            constructor(x, y, text) {
+                this.x = x;
+                this.y = y;
+                this.text = text;
+                this.alpha = 1.0;
+                this.velocityY = -1;
+                this.gravity = 0.05;
+                this.color = '#ff00ff';
+            }
+
+            draw() {
+                ctx.globalAlpha = this.alpha;
+                ctx.fillStyle = this.color;
+                ctx.font = `24px Press Start 2P`;
+                ctx.textAlign = 'center';
+                ctx.fillText(this.text, this.x, this.y);
+                ctx.globalAlpha = 1.0;
+            }
+
+            update() {
+                this.y += this.velocityY;
+                this.velocityY += this.gravity;
+                this.alpha -= 0.01;
+            }
+        }
+        
+        class InfiniteGround {
+            constructor(y, height) {
+                this.y = y;
+                this.height = height;
+                this.patternSize = 20;
+                this.x = 0;
+            }
+
+            draw() {
+                ctx.strokeStyle = 'rgba(0, 180, 216, 0.4)';
+                ctx.lineWidth = 2;
+                ctx.shadowColor = 'rgba(0, 180, 216, 0.8)';
+                ctx.shadowBlur = 10;
+
+                for (let i = 0; i < canvas.width / this.patternSize + 1; i++) {
+                    for (let j = 0; j < this.height / this.patternSize; j++) {
+                        const gridX = (this.x % this.patternSize) + i * this.patternSize;
+                        ctx.strokeRect(gridX, this.y + j * this.patternSize, this.patternSize, this.patternSize);
+                    }
+                }
+                
+                ctx.shadowBlur = 0;
+            }
+
+            update() {
+                this.x -= obstacleSpeed;
+            }
+        }
+
+        class Particle {
+            constructor(x, y, color) {
+                this.x = x;
+                this.y = y;
+                this.size = Math.random() * 5 + 1;
+                this.color = color;
+                this.velocityY = Math.random() * -5 - 1;
+                this.velocityX = (Math.random() - 0.5) * 5;
+                this.alpha = 1;
+            }
+
+            draw() {
+                ctx.fillStyle = `rgba(255, 255, 255, ${this.alpha})`;
+                ctx.fillRect(this.x, this.y, this.size, this.size);
+            }
+
+            update() {
+                this.x += this.velocityX;
+                this.y += this.velocityY;
+                this.velocityY += 0.1;
+                this.alpha -= 0.02;
+            }
+        }
+
+        let viagraText = null;
+        let ground;
+
+        // --- Game Logic Functions ---
+        function resizeGame() {
+            const containerWidth = gameContainer.clientWidth;
+            const containerHeight = gameContainer.clientHeight;
+            let newWidth, newHeight;
+
+            if (containerWidth / containerHeight > gameAspectRatio) {
+                newHeight = containerHeight;
+                newWidth = newHeight * gameAspectRatio;
+            } else {
+                newWidth = containerWidth;
+                newHeight = newWidth / gameAspectRatio;
+            }
+
+            canvas.width = newWidth;
+            canvas.height = newHeight;
+            baseGroundLevel = canvas.height - 0.05 * canvas.height;
+            
+            // Re-initialize game elements with new dimensions
+            if (player) {
+                player.size = 0.125 * canvas.height;
+                player.y = baseGroundLevel - player.size;
+            }
+            if (ground) {
+                ground = new InfiniteGround(baseGroundLevel, 0.05 * canvas.height);
+            }
+        }
+
+        function createParticles(x, y, color, count) {
+            for (let i = 0; i < count; i++) {
+                particles.push(new Particle(x, y, color));
+            }
+        }
+
+        function checkCollision() {
+            let currentGroundLevel = baseGroundLevel;
+            let fatalCollision = false;
+
+            const scaleFactor = isMobileDevice() ? mobileScale : 1;
+            const offsetX = (canvas.width * (scaleFactor - 1)) / 2;
+            const offsetY = (canvas.height * (scaleFactor - 1)) / 2;
+
+            for (const obstacle of obstacles) {
+                const playerLeft = player.x;
+                const playerRight = player.x + player.size;
+                const playerTop = player.y;
+                const playerBottom = player.y + player.size;
+
+                const obstacleLeft = (obstacle.x * scaleFactor) - offsetX;
+                const obstacleRight = (obstacle.x + obstacle.width) * scaleFactor - offsetX;
+                const obstacleTop = (obstacle.y * scaleFactor) - offsetY;
+                const obstacleBottom = (obstacle.y + obstacle.height) * scaleFactor - offsetY;
+
+                if (playerRight > obstacleLeft && playerLeft < obstacleRight && playerBottom > obstacleTop) {
+                    if (obstacle.type === 'square' && player.y + player.size <= obstacleTop + player.velocityY + 5 && player.velocityY >= 0) {
+                        currentGroundLevel = obstacleTop;
+                        fatalCollision = false;
+                        player.isJumping = false;
+                        player.velocityY = 0;
+                        if (!obstacle.hasPlayedSound) {
+                            mehdiGiftTrapSound.currentTime = 0;
+                            mehdiGiftTrapSound.play();
+                            obstacle.hasPlayedSound = true;
+                        }
+                    } else {
+                        fatalCollision = true;
+                        break;
+                    }
+                }
+            }
+
+            return { fatal: fatalCollision, ground: currentGroundLevel };
+        }
+        
+        function checkPillCollision() {
+            const scaleFactor = isMobileDevice() ? mobileScale : 1;
+            const offsetX = (canvas.width * (scaleFactor - 1)) / 2;
+            const offsetY = (canvas.height * (scaleFactor - 1)) / 2;
+
+            for (let i = pills.length - 1; i >= 0; i--) {
+                const pill = pills[i];
+                if (!pill.collected) {
+                    const playerLeft = player.x;
+                    const playerRight = player.x + player.size;
+                    const playerTop = player.y;
+                    const playerBottom = player.y + player.size;
+                    
+                    const pillLeft = (pill.x * scaleFactor) - offsetX;
+                    const pillRight = (pill.x + pill.size) * scaleFactor - offsetX;
+                    const pillTop = (pill.y * scaleFactor) - offsetY;
+                    const pillBottom = (pill.y + pill.size) * scaleFactor - offsetY;
+
+                    if (playerRight > pillLeft && playerLeft < pillRight && playerBottom > pillTop && playerTop < pillBottom) {
+                        pill.collected = true;
+                        mehdiGiftTrapSound.currentTime = 0;
+                        mehdiGiftTrapSound.play();
+                        viagraText = new FloatingText(pill.x + pill.size / 2, pill.y - 10, 'Viagra');
+                        return;
+                    }
+                }
+            }
+        }
+
+        function generateWorldElements(timestamp) {
+            if (timestamp - timeSinceLastObstacle > Math.random() * 2500 + 1500) {
+                let obstacle;
+                const obstacleSize = 0.1 * canvas.height;
+                if (Math.random() > 0.5) {
+                    obstacle = new Obstacle(canvas.width, baseGroundLevel - obstacleSize, obstacleSize, obstacleSize, 'triangle');
+                } else {
+                    obstacle = new Obstacle(canvas.width, baseGroundLevel - obstacleSize, obstacleSize, obstacleSize, 'square');
+                }
+                obstacles.push(obstacle);
+                timeSinceLastObstacle = timestamp;
+            }
+
+            if (timestamp - timeSinceLastPill > 15000) {
+                const pillSize = 0.05 * canvas.height;
+                const pill = new Pill(canvas.width + 100, baseGroundLevel - pillSize, pillSize);
+                pills.push(pill);
+                timeSinceLastPill = timestamp;
+            }
+        }
+
+        // Main game loop
+        function gameLoop(timestamp) {
+            let offsetX = 0;
+            let offsetY = 0;
+            if (shakeTime > 0) {
+                offsetX = Math.random() * 5 - 2.5;
+                offsetY = Math.random() * 5 - 2.5;
+                shakeTime--;
+            }
+            ctx.setTransform(1, 0, 0, 1, offsetX, offsetY);
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            ctx.save();
+            if (isMobileDevice()) {
+                ctx.scale(mobileScale, mobileScale);
+                const scaleOffsetX = (canvas.width * (mobileScale - 1)) / (2 * mobileScale);
+                const scaleOffsetY = (canvas.height * (mobileScale - 1)) / (2 * mobileScale);
+                ctx.translate(-scaleOffsetX, -scaleOffsetY);
+            }
+
+            ground.update();
+            ground.draw();
+
+            if (isGameRunning) {
+                generateWorldElements(timestamp);
+
+                const collisionResult = checkCollision();
+                if (collisionResult.fatal) {
+                    isGameRunning = false;
+                    isGameOverState = true;
+                    player.isVisible = false;
+                    createParticles(player.x + player.size / 2, player.y + player.size / 2, '#ff0000', 500);
+                    endGame();
+                }
+                player.update(collisionResult.ground);
+                player.draw();
+
+                for (let i = obstacles.length - 1; i >= 0; i--) {
+                    const obstacle = obstacles[i];
+                    obstacle.update();
+                    obstacle.draw();
+
+                    if (obstacle.x + obstacle.width < 0) {
+                        obstacles.splice(i, 1);
+                        score++;
+                    }
+                }
+                
+                checkPillCollision();
+                for (let i = pills.length - 1; i >= 0; i--) {
+                    const pill = pills[i];
+                    pill.update();
+                    pill.draw();
+                    if (pill.x + pill.size < 0 || pill.collected) {
+                        pills.splice(i, 1);
+                    }
+                }
+                
+            }
+            
+            for (let i = particles.length - 1; i >= 0; i--) {
+                const particle = particles[i];
+                particle.update();
+                particle.draw();
+                if (particle.alpha <= 0) {
+                    particles.splice(i, 1);
+                }
+            }
+            
+            if (viagraText) {
+                viagraText.update();
+                viagraText.draw();
+                if (viagraText.alpha <= 0) {
+                    viagraText = null;
+                }
+            }
+            ctx.restore();
+
+            if (isGameRunning) {
+                 scoreDisplay.textContent = score;
+            }
+
+
+            if (isGameOverState && particles.length === 0) {
+                gameOverScreen.style.display = 'flex';
+                return;
+            }
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        // --- Game Flow Control ---
+        function startGame() {
+            startScreen.style.display = 'none';
+            gameOverScreen.style.display = 'none';
+            isGameRunning = true;
+            isGameOverState = false;
+            score = 0;
+            scoreDisplay.textContent = '0';
+            resizeGame(); // Re-size everything at the start
+            player = new Player(0.0625 * canvas.width, baseGroundLevel - 0.125 * canvas.height, 0.125 * canvas.height);
+            obstacles = [];
+            pills = [];
+            viagraText = null;
+            ground = new InfiniteGround(baseGroundLevel, 0.05 * canvas.height);
+            particles = [];
+            obstacleSpeed = 0.00625 * canvas.width;
+            timeSinceLastObstacle = 0;
+            timeSinceLastPill = performance.now();
+            bgm.currentTime = 0;
+            bgm.play();
+            requestAnimationFrame(gameLoop);
+        }
+
+        function endGame() {
+            bgm.pause();
+            gameOverSound.currentTime = 0;
+            gameOverSound.play();
+            finalScoreDisplay.textContent = score;
+            shakeTime = 30;
+        }
+        
+        function handleJump() {
+            if (isGameRunning) {
+                player.jump();
+            } else if (startScreen.style.display === 'flex' || gameOverScreen.style.display === 'flex') {
+                startGame();
+            }
+        }
+        
+        // --- Event Listeners ---
+        window.addEventListener('keydown', (e) => {
+            if (e.code === 'Space') {
+                e.preventDefault();
+                handleJump();
+            }
+        });
+
+        canvas.addEventListener('click', () => {
+            handleJump();
+        });
+        
+        startGameBtn.addEventListener('click', startGame);
+        retryBtn.addEventListener('click', startGame);
+
+        // Responsive event listeners
+        window.addEventListener('resize', checkOrientation);
+        window.addEventListener('orientationchange', checkOrientation);
+
+        function checkOrientation() {
+            const isMobile = window.matchMedia("(max-width: 800px)").matches;
+            if (isMobile && window.innerHeight > window.innerWidth) {
+                gameContainer.style.display = 'none';
+                startScreen.style.display = 'none';
+                gameOverScreen.style.display = 'none';
+                rotateMessage.style.display = 'block';
+            } else {
+                rotateMessage.style.display = 'none';
+                resizeGame();
+                if (!isGameRunning && !isGameOverState) {
+                    gameContainer.style.display = 'flex';
+                    startScreen.style.display = 'flex';
+                } else if (isGameRunning) {
+                    gameContainer.style.display = 'flex';
+                } else if (isGameOverState) {
+                    gameContainer.style.display = 'flex';
+                    gameOverScreen.style.display = 'flex';
+                }
+            }
+        }
+
+        // Initial check on page load
+        checkOrientation();
+    </script>
+</body>
+</html>
