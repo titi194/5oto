@@ -2,804 +2,588 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>5oto 5oto Rush</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Block-Head Bouncer</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
-        
-        /* Base styles for the body and game container */
+        /* Basic Page Styling */
         body {
-            font-family: 'Press Start 2P', monospace;
-            background-color: #0b0f1a;
-            color: #e0f2fe;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-            min-height: 100vh;
             margin: 0;
+            padding: 0;
             overflow: hidden;
-            text-shadow: 2px 2px #000;
-        }
-
-        .game-wrapper {
-            position: relative;
-            width: 100%;
-            height: 100vh;
+            background-color: #000;
             display: flex;
             justify-content: center;
             align-items: center;
-            flex-direction: column;
+            height: 100vh;
+            font-family: 'Courier New', Courier, monospace;
         }
 
-        .background-stars-1, .background-stars-2 {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-size: cover;
-            animation: moveBackground 150s linear infinite;
-            z-index: -2;
-        }
-        
-        .background-stars-1 {
-            background-image: url('https://placehold.co/1000x500/0b0f1a/e0f2fe?text=');
-            opacity: 0.1;
-        }
-
-        .background-stars-2 {
-            background-image: url('https://placehold.co/1000x500/0b0f1a/e0f2fe?text=');
-            animation-duration: 200s;
-            opacity: 0.05;
-        }
-
-        @keyframes moveBackground {
-            from { background-position: 0 0; }
-            to { background-position: -2000px 0; }
-        }
-
-        /* Responsive canvas styling */
+        /* Canvas Styling */
         canvas {
-            border: 4px solid #00b4d8;
-            background-color: #1a2a44;
-            background-image: 
-                linear-gradient(rgba(0, 180, 216, 0.5) 2px, transparent 2px), 
-                linear-gradient(90deg, rgba(0, 180, 216, 0.2) 1px, transparent 1px);
-            background-size: 100% 4px, 4px 100%;
-            box-shadow: 0 0 20px #00b4d8, 0 0 40px #0077b6;
-            border-radius: 12px;
-            cursor: pointer;
-            touch-action: none;
-            image-rendering: pixelated;
-        }
-        
-        .game-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 20px;
-            padding: 20px;
-            width: 100%;
-            box-sizing: border-box;
-            max-width: 900px;
-        }
-        
-        .ui-panel {
-            display: flex;
-            justify-content: space-between;
-            width: 100%;
-            max-width: 800px;
-            padding: 10px;
-            box-sizing: border-box;
-            align-items: center;
+            background-color: #7ab3f1; /* Sky Blue */
+            display: block;
         }
 
-        /* Screen overlays (start, game over) */
-        .start-screen, .game-over-screen {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            text-align: center;
-            background-color: rgba(11, 15, 26, 0.95);
-            backdrop-filter: blur(5px);
-            padding: 40px;
-            border-radius: 15px;
-            box-shadow: 0 0 30px #00b4d8;
-            z-index: 100;
-            animation: fadeIn 0.5s ease-in-out;
-            width: 90%;
-            max-width: 400px;
-            border: 2px solid #00b4d8;
-        }
-
-        .game-over-screen {
+        /* Landscape Enforcement for Mobile */
+        #rotate-device-message {
             display: none;
-        }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        /* Animated buttons */
-        .btn {
-            background: linear-gradient(135deg, #00b4d8, #0077b6);
             color: white;
-            padding: 14px 28px;
-            border-radius: 8px;
-            font-weight: bold;
-            cursor: pointer;
-            border: none;
-            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out, background 0.2s ease-in-out;
-            box-shadow: 0 4px 15px rgba(0, 180, 216, 0.4);
-            text-transform: uppercase;
-            font-size: 1rem;
-        }
-        
-        .btn:hover {
-            background: linear-gradient(135deg, #0077b6, #005f9c);
-            transform: translateY(-4px) scale(1.05);
-            box-shadow: 8px 10px rgba(0, 180, 216, 0.6);
-        }
-        
-        .btn:active {
-            transform: translateY(0);
-            box-shadow: 2px 10px rgba(0, 180, 216, 0.3);
+            text-align: center;
+            font-size: 1.5em;
         }
 
-        /* New and updated text styles for better visual hierarchy */
-        .neon-title {
-            font-size: 3rem;
-            text-shadow: 0 0 10px #00b4d8, 0 0 20px #00b4d8, 0 0 30px #0077b6;
-            animation: pulse 1.5s infinite alternate;
-        }
-
-        .subtitle {
-            font-size: 1.25rem;
-            color: #8be1ff;
-            margin-top: -1rem;
-        }
-        
-        .score-text {
-            font-size: 1.5rem;
-            color: #ff0077;
-            text-shadow: 0 0 5px #ff0077;
-        }
-
-        .game-over-title {
-            font-size: 3rem;
-            color: #ff0077;
-            text-shadow: 0 0 10px #ff0077, 0 0 20px #ff0077;
-        }
-
-        .final-score {
-            font-size: 2rem;
-            color: #ff0077;
-            text-shadow: 0 0 5px #ff0077;
-        }
-
-        @keyframes pulse {
-            from { text-shadow: 0 0 10px #00b4d8, 0 0 20px #00b4d8; }
-            to { text-shadow: 0 0 15px #00b4d8, 0 0 30px #0077b6; }
-        }
-        
-        /* Media queries for better mobile experience */
-        @media (max-width: 600px) {
-            h1.text-xl {
-                font-size: 1.5rem;
+        @media (orientation: portrait) {
+            #gameCanvas {
+                display: none;
             }
-            .ui-panel {
-                flex-direction: column;
-                gap: 10px;
-            }
-            .btn {
-                width: 100%;
-                font-size: 0.9rem;
-            }
-            .start-screen, .game-over-screen {
-                padding: 20px;
-                max-width: 300px;
-            }
-            .neon-title {
-                font-size: 2rem;
-            }
-            .game-over-title {
-                font-size: 2.5rem;
-            }
-            .final-score {
-                font-size: 1.5rem;
-            }
-            .subtitle {
-                font-size: 1rem;
+            #rotate-device-message {
+                display: block;
             }
         }
-        
-        #jumpButton {
-            position: absolute;
-            bottom: 20px;
-            right: 20px;
-            padding: 15px 30px;
-            font-size: 1.5rem;
-            background: linear-gradient(135deg, #f0f8ff, #8be1ff);
-            color: #0b0f1a;
-            border: 2px solid #00b4d8;
-            border-radius: 50px;
-            box-shadow: 0 0 15px #8be1ff, 0 0 25px #00b4d8;
-            cursor: pointer;
-            display: none; /* Hidden by default */
-            transition: all 0.2s ease-in-out;
-            z-index: 100;
-        }
-        
-        #jumpButton:active {
-            transform: scale(0.95);
-            box-shadow: 0 0 5px #8be1ff, 0 0 10px #00b4d8;
-        }
-
     </style>
 </head>
 <body>
-    <div class="game-wrapper">
-        <div class="background-stars-1"></div>
-        <div class="background-stars-2"></div>
-
-        <div class="game-container" style="display: none;">
-            <div class="ui-panel">
-                <h1 class="text-xl font-bold">5oto 5oto Rush</h1>
-                <div class="flex items-center gap-4">
-                    <p class="text-lg">Score: <span id="score" class="score-text">0</span></p>
-                </div>
-            </div>
-            <canvas id="gameCanvas"></canvas>
-        </div>
-
-        <button id="jumpButton" class="font-bold">Jump</button>
-
-        <div id="startScreen" class="start-screen" style="display: none;">
-            <h2 class="font-bold mb-4 neon-title text-white">5oto 5oto Rush</h2>
-            <p class="mb-4 subtitle text-blue-300">3ndak Tkhser</p>
-            <button id="startGameBtn" class="btn">Start</button>
-        </div>
-
-        <div id="gameOverScreen" class="game-over-screen" style="display: none;">
-            <h2 class="font-bold mb-4 game-over-title">Game Over!</h2>
-            <p class="mb-4 text-xl">Your final score was: <span id="finalScore" class="final-score">0</span></p>
-            <button id="retryBtn" class="btn">3awed</button>
-        </div>
+    <canvas id="gameCanvas"></canvas>
+    <div id="rotate-device-message">
+        <p>Please rotate your device to landscape mode to play.</p>
     </div>
 
-    <script>
-        // --- Game Setup and Initialization ---
-        const canvas = document.getElementById('gameCanvas');
-        const ctx = canvas.getContext('2d');
-        const scoreDisplay = document.getElementById('score');
-        const startScreen = document.getElementById('startScreen');
-        const startGameBtn = document.getElementById('startGameBtn');
-        const gameOverScreen = document.getElementById('gameOverScreen');
-        const finalScoreDisplay = document.getElementById('finalScore');
-        const retryBtn = document.getElementById('retryBtn');
-        const gameContainer = document.querySelector('.game-container');
-        const gameWrapper = document.querySelector('.game-wrapper');
-        const jumpButton = document.getElementById('jumpButton');
+<script>
+// ======================================================================================
+// GAME SCRIPT - EVERYTHING IS IN HERE!
+// ======================================================================================
 
-        let isGameRunning = false;
-        let isGameOverState = false;
-        let score = 0;
-        let player, obstacles, pills;
-        let obstacleSpeed;
-        let particles = [];
-        let shakeTime = 0;
-        let baseGroundLevel;
-        let timeSinceLastObstacle = 0;
-        let timeSinceLastPill = 0;
-        const gameAspectRatio = 2 / 1;
-        const mobileElementScale = 1.3;
+// --- 1. GET CANVAS AND CONTEXT ---
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
 
-        // --- Audio elements ---
-        const bgm = new Audio('https://www.dropbox.com/scl/fi/2oea5f5x1ye2b6hwdegot/5oto-BGM.mp3?rlkey=trsq4q6xwdi2dyxfyfna1c27z&dl=1');
-        const jumpSound = new Audio('https://www.dropbox.com/scl/fi/jw4nc9cvrebquzbmh6lj5/jump-scare-scream-x.mp3?rlkey=hlhw86ww96rh392jt7t0u846v&dl=1');
-        const gameOverSound = new Audio('https://www.dropbox.com/scl/fi/6hiazk6htgw5m1umjdqoo/GAME-OVER-5oto.mp3?rlkey=u2a9bk6cayl757lxiyredluvw&dl=1');
-        const mehdiGiftTrapSound = new Audio('https://www.dropbox.com/scl/fi/7v7qosar34g0srjimuzgg/MEHDI-GIFT-TRAP.mp3?rlkey=ysbc9oufg35qhaglguy51041y&st=k1prokrk&dl=1');
-        
-        bgm.loop = true;
+// --- 2. ASSET LOADER & BASE64 IMAGE STRINGS ---
+// --------------------------------------------------------------------------
+//  ACTION REQUIRED: Replace these placeholder Base64 strings with your own!
+//  Use an online converter to turn your PNG images into Base64 strings.
+// --------------------------------------------------------------------------
+const ASSETS_BASE64 = {
+    // Player Faces
+    player_playing: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAIBSURBVHhe7dxNatsgEAbgybiwB1gEtqBn8WjYx5I1YkdwBLZgDyag1GgoihGQYm+k5x86I6A7ff0gIl/+1QCAAAECBAgQIECAAIG1BbPZjMlkMpfLZelLnhuMxtnWZ/uX4XAYo9FIrVYrdc1LfoMwCABkMhnevHnT3t5etGkGz/Osrq5OisN4PCbLcq4/jUbjU2iW/j1xTzAQALqun5gXpmn+8I+NRuOQ8Ygmz2w2/wdMAdcTMwx4npdlWRcDAYBaLVaXUilvLBYLC5/d1hBAQcCcSqXyeqVSaavVavvB+/1DqVQiDEPWbDZv2u82EABKJaJpmkbTNNy9e9dcLjeT/W/XarWC4LBYLDabzTt3dAlmAlEUjcFg6Nu8qKZpaDTs2NjYYDDodrtx/fr1+vq6o6wWgGg2m41GowCAcrkcRVEIgpDnmXg8LplMRq/Xj118pFarVSwWY7/fl8vlcDiczWYz4J/JZEImk9Hr9V+4AMwF00kYhpVKhUajIQiCuq4ZDAZFkYDbsG0bRVE6nU4qlXJtGk3TxuNxBEHI5XIymczH4xGGINvtplKpfD6f4vG4rutbWxGA6lCqra1rGkqlUjRNAwBYlnXo88j5JksxMwD1ej1FURiPxzEcbGhoCCCAAkDQNG0xGLzI+kDXdU6nc3Z2dgBgUiwGqFarEAQhqVQaFxcXvb29ubPMAyBAgAABAgQIEAgwJ/kHeXlEKOuYlygAAAAASUVORK5CYII=',
+    player_losing: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAIcSURBVHhe7dxtctsgEAbgrs4TcoB5kpyQ5B0+K/gBcwI+gCeECm5jH4bCSIuVLAz2O++dhYY/Urv0gwT/KgcIECBAgAABAgQIECBwbQHMZnMyn88/vFwuLe+mNwzD4bJ8vf4YDIao1+u6rt8s+WbPMwwDANM0d3R0xNraWjTL5Pmu0WgUCUfxeJymaRdfKxQKM+AvmAEAGN7hNfHifFkqlUIQBAYDY+l4W6vVal9/MwNcX4wxkEql4HkeAMBisTg5OdmxJ14/BADncrkcDocEgkDUNE0URWVlZbEtv9vXbTabTqdxkGg0ihDGOzIEmACaTqe/tBv0QRAEQVdXdY/HIxaLsVgsSqVSwWAQg09ubtYAIASDQABQKBQiCMNwOPyBCWBsGAbtK/1990MQRKbTaTqdjsVicTicrKurkwQEgFQqRVEUpmmiWCwi3r82Nzfl43K51Gg0IpEISZIkSZLE4/HA88y6rlOpVB6PB13XDz4AmAGaS8IgCBQKBZIkCYKAputyuVxUVavVal3XhRCEOI6l02kiScKybDwel0wmI0kSzP/U6XSi0Wg2mw2CoNraWkDULq11XaNaG/y93m6v40XyBpgpIDwAgiDIZrNFG/xO3zB9hUKBaDTqbrejbJz9fWIAAQ0GgyAIgqIoHA4HU1NTcTycl/oXECBAgAABAgQIEDhcYA4D3uM8HkO9f7UCAAAAQUZ+AfQ0kPqE3+4qAAAAAElFTkSuQmCC',
+    player_relaxed: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAIQSURBVHhe7dxNatsgEAbgybiwB1gEtqBn8WjYx5I1YkdwBLZgDyag1GgoihGQYm+k5x86I6A7ff0gIl/+1QCAAAECBAgQIECAAIG1BbPZjMlkMpfLZelLnhuMxtnWZ/uX4XAYo9FIrVYrdc1LfoMwCDzPyzTNm5sb/qDNILs9NptNHGexWNQ0TZpmo9HYrKx/8ZpYMAGANAYb9iP89fSfn8fjcZS5MvI8H38ABkAGXJ/MIMDPzw9BEFRVRVCr1R9+yO7xBADgcrn0ej1JJJNJ+Xw+lUphkKRSKeR+P3t/oVarBQGYJEl3S1v7S4IgCIIAgNlsluL4nJqaSiQS6XVlF18AmCEq9fW71l9uX54e1/N8UeD+BGAJBgIAAECSJJqmHR98N3qSJKlarYqihCiKsVjscDiUb7Z5AACKokDX/tYHgBCEWq2WTCZBURRN00RRFBcuLsbjcTQah6IocF0XDAZjPp+TJAkAgM/na3iWk/D588tPAGqF0lqtBggCg8Hg4mO+23FpmiZLssvllpYWJ5MAAEzTRFCqtf4C82m13lqtBEFQKhXAAMiyTCKRBEFQPB5HRw8gAAJaK5VIwiiKSJKk0WhI04KqaZoGABCEsVis1WppNpvwPM887+rq6uHhoS6Xc3t7m6IodR4CBAgQIECAAIFJBT4BF0bEKLV5e2EAAAAASUVORK5CYII=',
+    // Obstacle / Item
+    poop: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAACNSURBVFhH7YxBCsAgDES9/zV7jG7RFNhVOHjRtrQdp5g1iJW/cAXmgBvwQgFQAiYyMAdAAGQyYw0AJmM2gwAgyWRqAYCMZMYaAERmag4ABoAMmTIAAEDWZDoAhAFgwqQBQAowMmeAAIAkyWQAoADIkMkAABagMhlSAJSAmMwIASADMgEcYAXcAUfYAS/gAS73eL1n/2k9AAAAAElFTkSuQmCC',
+    mashroom: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAADISURBVFhH7ZbBCcAgDEV9/zW7ZJ1iCgxCWDj+dAmGjgkYiK9xBWJQD5SBCbEAAUCETJgrAYBEmU0CgJBIk5kBACSZEfMSgCSZTYKAFJCJcxEAmEiS7wBggEiSWQIAlCSThwCQAJJkhgIAsJBkcgGQAJFkhgUAEEiSmQIABCJLkgEEQEokSWYAIJEkmVEAAIEsyXABAFokSUYOAC2SJLNAAGCQJDMCABSJLKlcAf8y/AM2B0eKxU1Gk23X74e2kXyPkyJJEgS+qWSAuJbCAsaTAmWj7h+zAAAAAElFTkSuQmCC',
+    // UI Elements
+    heart: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAABtSURBVFhH7YxBCoAwDEV7/zV7zKK2+LAh/IUXWc+iT0y0F5dYB+zACbhAAdCDBB5iAQIgIM/g8AAIkCcwgAcAEuT+DB8AgjxzBhIAg8Q3BzcAiCCPA0EAKJH5MzUARCJvBAHIEVgkR5Ie4AEyv74AL9VFnL/iPzAAAAAASUVORK5CYII=',
+    btn_long: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAAAgCAYAAAD9fHfbAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAABoSURBVHhe7cixAQAACASg+yft4iCE+EE2gQAeHggQIECAAIGaQMwExAQkHkQE5MUk7QkBAgQIEPgVEBPg1QeM8gJ4/oYECBAgQOD/QEwgpoAsIEtIC8g+ECAAAQL/An++AXf0eC6pAAAAAElFTkSuQmCC',
+    btn_pause: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADQAAAAeCAYAAABum6cfAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAA7SURBVFhH7cwxAQAACASg+TfN2okIkU+CBECBAgUKFChQoECBAgUKFChQoECBAgUKFChQwFwDd40AASkYlL4AAAAASUVORK5CYII=',
+    btn_jump: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADwAAAA8CAYAAAA6/N6pAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAFRSURBVFhH7dHBTcMwEAVgqjNAO0EbIRslG6QDoANIB7QDRgkM7pBEkRTZ+v3g/gX1+B7r1oAgEolEIpFItiUnX1OanP5TepYxPMMhjuEa5r69MAMzzMOs8/o/5gdmYUYOcy/zzG7MAyzEPMwqjzzPMf1DLOAghnEI3mYkEGAThnHjA7j4GEYxAof5D6YRh/kEzsOEZC7DMCdwg7MYhOEZ9qE81iEN3vEO+zCKwzvspJ/wEA8wjVUEPMw2uIAjeMZT1Gk4g0F0H0M01iEAV2ECvMYl8Ap8wlPchcNYha4j3eEFnMIz/IDzGIEbuIXDWEJ38Ikn4AzGsYLWsYtF7CAOcwXewYV4B8fYRWuYx2yYwhK8gyF8x2MExhE6rB/Q6Lp9yQdYw0vciQkMYRDzGMx3kQjHMBzBMQwiQOIQEwEEIgSRAUQmEAkkEonEG/IDQd/c8uKkNKsAAAAASUVORK5CYII=',
+    icon_sound_on: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAEySURBVFhH7Y/BDoIwDEV5/zW7jZt11Yxpm+ALb+VpsQkKjfC1JMSLw4F+CqCBAugjAQQpAQQJQAKTEkAECEoCDAIkBfCTnQAIKEgKEEQAKMGAhICuEEAIyOQnAJoFpADpAEAJCchSAIAsD38CYBcgDVAHwJI4DUBT4JUAaAO8KkBaAEtKAIhOQEKA5CSAkRAwBQCZkCQA1iUgE/JMAEjEFAJCdgJyISAnAEQiISBWBEQCZCJCElQhAGQiIQFaYjSA05B/AehhHqCA9sCQAEDtAB552dYDgN0AHgMwC0AjgO4ANAF2AbADkH1pAY0AbQOaAQwC9kCQA6wPQLgXyDqAx8u0k9HSc+C5P88lW8Psvy15vH6c9X6oV6q9kLRLVAG/AWFqj7hI0+K8AAAAAElFTkSuQmCC',
+    icon_sound_off: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAErSURBVFhH7Y+hDsJAEETP/k/rLNYkGxfxGf/hXXM6lSKNQrjViQgvzgP6LYAGEaCPAkCSAUkGIMGoBBABgsZAYAAiYz+JkQBIGRkDKAIApGkYGSAdAUAJpGWVAEAyC5EAMAugBpIBgHkcQoCMAkAE+EpAKQBfWwGIALAUACATGRkgGgFJYwEkQgIFADIpE/JnEkAikDCAVAo5ETJIAIjERAIIgYAcBQghABkJ8AoEBCBEQiISJCIpERCSLQiAk4hISIgWEEI4R/6P93M1EIDyB5ICqAMAB9+eOACc6QCeAFkA2gDkAFwFUA9AKYA0AVQC7AZQB3B6oM0Anl1DDoCOAWwDoAsAP4CGAZMBhAWMBgy4JgJ2AT5fph1ZJ2b5k8z12X/Lkn3j+LTrj9frDaqnqqxZVQB7v5u/zJ4fEQAAAABJRU5ErkJggg==',
+    // Environment
+    ground_tile: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAADvSURBVHhe7dBBCoAwDEXBD93/tHKT9hAh9tJBB053p5E73fF1A3z+Tz/AK/CFkGfAZ+DjwO5gI5jQZkYJECBAgAABAlECn5zQpiHlHwgQIECAAAECUYJ+LmgTUDCkygMECBAgQIDAhEC7LmhjUNYDAgQIECAwIVB10AagK+fQhggBAgQIECDw/0DPaBsE5KSAe+vL9gECBAgQIJAgsHkSDAgQIECAAAECBAgQIECAAAECBAgQIECAAAECBAgQIECAAIELgR2Ww9nAQ7bDAwQIECBwrgQ+AQ7dY8zEpHkAAAAASUVORK5CYII=',
+    dirt_tile: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAC0SURBVHhe7dHBDYAgDEPRrTfoqP9g3Q0SJKUINm4z3N7jZwCysgX/876c8AJY4LSEjwnYCRwjF9wECBAgQICAbEBaHjAnQIwAAQIECBDwn0BjBcgCgh8IxoY/kAYIECBAgMBdgdIE3AnqPZAYIECAAIFfAqUTcAfoa4EEBAgQIECgnwLtBIq2L+8b/QkECBAgQOBfgcQE6vCqAQIECBAgQIAAAQIECBAgQIAAAQIECBAgQIAAAQIXAjsiP4B/Z6bAFAwA3gAAAABJRU5ErkJggg==',
+    rock_obstacle: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAEKSURBVFhH7ZYxDoMwEEY992vtj14d8xI8iT2l7Y54gEgoaIok2zZpP3bWlzaR3Q7gB+4AFtABD8hI4ARQAmIgEzh/AAKAmEzhBSDAj8zkAyC4M5n7AcSbyQCA0M1kJUDIbyYHAEAykw4AodxkAsDId5MNABGfyQCACW4yAOAEs5lBAIAz+u012Lp9h+2hI+CjBPCgBPCnZzSAvwSAH79HBHgiYfC6R24L4EnW2zUBOpE1d40A3kSNDRkBEF3j0REAnp+u2Y2AAz9lH04a4M/9/t4H8ONH9ABvH1Hh5g0Arb4zIgfAEWc0HAAcEUYDAOc9MxgBuHdoMgAAvp1/AYz+fX9b/OejAAAAAElFTkSuQmCC',
+    cloud: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAAAsCAYAAAD9b1GZAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAMNSURBVHhe7ZvPcuJAEEbfdI6s0wFygHWC0mRchSdwChyn4LgCwwkYgROwdALqJKhD51R2iOAIzUhkZ2ePNDPzyjOq1w9P9y0W25m+t1KpFKtZzW/p7J+f24fdbge/v6l+f2l+yV3LdDrNc8vleOPl25/f7LpQKPxOa2jH+Pnz51KpbGVy219bW7G1tfVfX1e/n0qlqul0ejT3c9Uf/X4Xo1fR43w2m/0k0+cKgcw/n2i1+utjWJ+P+J9V8WcQWADw+vXrT5o/hBAmK1l8oQKAIAhhP+rPz8/b4qK+9wKAx+PZ1NSUQ3o30lqfzzC5lsvl0qg6tQj3Y2u21/3rXWCM1p7P5ysUCsUaG/D5vDxf29vbg9kMhmwzAAzG1lqtlvL9vby8+Prrr1+/flWrVWt5OzwIgwG7/R9/k7wM4e0bOAAIhMfjy7qVTCYr2/6KAGgTCoXC6+vryyYmJoYsN7gQACqVIpvNLssbH7nS9cMAqFAoNDU15dCeMZnMjWwW3q/eG2FmI6s4n89b2VwXAJgWdYQAiBAy9Bwz2TAYhBkAms1mk/9jGAybqGq1GoD2WADyIqFQKAD6G9fV1dVkMrkx3oU7WADq7GwyefnyZZWjY9MIAgG+2o3L/75QKLxtGgQAABKJoMFo0AAYhBCdAI/Hg/P9mK+DweA3w4MAwN3dHWApEAjs81eI2Vrr9RpxM0S1AODt7Y3NZoNtXo8XACsAYH8MgyFCwBhTazA3NzftCACAq1evAmjfAIAqAOBiAwBMBADQvAGAKgBgYyMAXAWA6zIuE9lX/r4gG58Qy17AQQBQXc9N7XNza14fAFAzUjGzAgDoAgDgQADAyACAkA0AoAwAnWnBzw8AAFgDDAAo6V/JAAClBQBoEADY/gEAaAIA7AQArACACgBoBgD2AsB/AwBWAP8aAPwfAIu/+wQASZKUyWTK3sEvy09K9y97B7MA/xP0WnLq0+u+lAAAAABJRU5ErkJggg==',
+};
+const assets = {};
 
-        function isMobileDevice() {
-            return window.innerWidth < 800;
+function loadAssets(callback) {
+    let assetsLoaded = 0;
+    const totalAssets = Object.keys(ASSETS_BASE64).length;
+
+    if (totalAssets === 0) {
+        callback();
+        return;
+    }
+
+    for (let key in ASSETS_BASE64) {
+        assets[key] = new Image();
+        assets[key].src = ASSETS_BASE64[key];
+        assets[key].onload = () => {
+            assetsLoaded++;
+            if (assetsLoaded === totalAssets) {
+                callback();
+            }
+        };
+    }
+}
+
+
+// --- 3. GAME CONFIGURATION AND STATE ---
+const config = {
+    // Canvas dimensions
+    width: 800,
+    height: 450,
+    // Player settings
+    playerSpeed: 3,
+    jumpForce: 13,
+    gravity: 0.6,
+    // Score
+    scorePerSecond: 10,
+    poopPenalty: 250,
+    mushroomBonus: 500,
+};
+
+let gameState = 'MENU'; // 'MENU', 'PLAYING', 'PAUSED', 'GAMEOVER'
+let score = 0;
+let highScore = localStorage.getItem('blockHeadHighScore') || 0;
+let soundOn = true;
+let isMouseDown = false;
+let mousePos = { x: 0, y: 0 };
+
+
+// --- 4. GAME OBJECTS (PLAYER, PLATFORMS, etc.) ---
+
+// Camera object to follow the player
+const camera = {
+    x: 0,
+    y: 0,
+    update: function(target) {
+        // Follow the player, but don't go backwards
+        if (target.x - this.x > 300) {
+            this.x = target.x - 300;
         }
+    }
+};
 
-        // --- Game Classes ---
+// Player object
+let player = {};
+function resetPlayer() {
+    player = {
+        x: 100,
+        y: 100,
+        vx: 0,
+        vy: 0,
+        width: 48,
+        height: 48,
+        isGrounded: false,
+        health: 3,
+        faceState: 'playing', // 'playing', 'losing', 'relaxed'
+        faceTimer: 0,
+    };
+}
 
-        class Player {
-            constructor(x, y, size) {
-                this.x = x;
-                this.y = y;
-                this.size = size;
-                this.velocityY = 0;
-                this.gravity = 0.001 * canvas.height;
-                this.isJumping = false;
-                this.isVisible = true;
-            }
+// World objects (platforms, items)
+let platforms = [];
+let items = [];
+let obstacles = [];
+let clouds = [];
 
-            draw() {
-                if (this.isVisible) {
-                    ctx.font = `${this.size}px sans-serif`;
-                    ctx.textAlign = 'center';
-                    ctx.textBaseline = 'top';
-                    ctx.fillText('🧔🏾', this.x + this.size / 2, this.y);
-                }
-            }
+function generateLevel() {
+    platforms = [
+        // Starting platform
+        { x: 0, y: 380, width: 600, height: 70 },
+        // Subsequent platforms
+        { x: 750, y: 380, width: 400, height: 70 },
+        { x: 900, y: 250, width: 150, height: 70 },
+        { x: 1300, y: 380, width: 150, height: 70 },
+        { x: 1600, y: 320, width: 300, height: 70 },
+        { x: 2000, y: 250, width: 200, height: 70 },
+        { x: 2350, y: 380, width: 800, height: 70 },
+        { x: 3300, y: 380, width: 400, height: 70 },
+        { x: 3400, y: 250, width: 100, height: 70 },
+        // Add more platforms...
+    ];
 
-            update(currentGroundLevel) {
-                this.velocityY += this.gravity;
-                this.y += this.velocityY;
+    items = [
+        { x: 850, y: 350, type: 'mashroom', width: 32, height: 32 },
+        { x: 2500, y: 350, type: 'mashroom', width: 32, height: 32 },
+    ];
 
-                if (this.y >= currentGroundLevel - this.size) {
-                    this.y = currentGroundLevel - this.size;
-                    this.isJumping = false;
-                    this.velocityY = 0;
-                }
-            }
-
-            jump() {
-                if (!this.isJumping) {
-                    this.isJumping = true;
-                    this.velocityY = -0.025 * canvas.height;
-                    jumpSound.currentTime = 0;
-                    jumpSound.play();
-                }
-            }
-        }
-
-        class Obstacle {
-            constructor(x, y, width, height, type) {
-                this.x = x;
-                this.y = y;
-                this.width = width;
-                this.height = height;
-                this.type = type;
-                this.color = '#ff0077';
-                this.outlineColor = '#ffffff';
-                this.hasPlayedSound = false;
-            }
-
-            draw() {
-                ctx.shadowColor = this.color;
-                ctx.shadowBlur = 15;
-                ctx.fillStyle = this.color;
-                ctx.strokeStyle = this.outlineColor;
-                ctx.lineWidth = 4;
-
-                ctx.font = `${this.height}px sans-serif`;
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'bottom';
-                
-                if (this.type === 'square') {
-                    ctx.fillText('🚽', this.x + this.width / 2, this.y + this.height);
-                } else if (this.type === 'triangle') {
-                    ctx.fillText('💩', this.x + this.width / 2, this.y + this.height);
-                }
-                
-                ctx.shadowBlur = 0;
-                ctx.textAlign = 'start';
-                ctx.textBaseline = 'alphabetic';
-            }
-            
-            update() {
-                this.x -= obstacleSpeed;
-            }
-        }
-
-        class Pill {
-            constructor(x, y, size) {
-                this.x = x;
-                this.y = y;
-                this.size = size;
-                this.emoji = '💊';
-                this.isVisible = true;
-                this.collected = false;
-            }
-
-            draw() {
-                if (!this.collected) {
-                    ctx.shadowColor = '#00faff';
-                    ctx.shadowBlur = 10;
-                    ctx.font = `${this.size}px sans-serif`;
-                    ctx.textAlign = 'center';
-                    ctx.textBaseline = 'middle';
-                    ctx.fillText(this.emoji, this.x + this.size / 2, this.y + this.size / 2);
-                    ctx.shadowBlur = 0;
-                }
-            }
-
-            update() {
-                this.x -= obstacleSpeed;
-            }
-        }
-
-        class FloatingText {
-            constructor(x, y, text) {
-                this.x = x;
-                this.y = y;
-                this.text = text;
-                this.alpha = 1.0;
-                this.velocityY = -1;
-                this.gravity = 0.05;
-                this.color = '#ff00ff';
-            }
-
-            draw() {
-                ctx.globalAlpha = this.alpha;
-                ctx.fillStyle = this.color;
-                ctx.font = `24px Press Start 2P`;
-                ctx.textAlign = 'center';
-                ctx.fillText(this.text, this.x, this.y);
-                ctx.globalAlpha = 1.0;
-            }
-
-            update() {
-                this.y += this.velocityY;
-                this.velocityY += this.gravity;
-                this.alpha -= 0.01;
-            }
-        }
-        
-        class InfiniteGround {
-            constructor(y, height) {
-                this.y = y;
-                this.height = height;
-                this.patternSize = 20;
-                this.x = 0;
-            }
-
-            draw() {
-                ctx.strokeStyle = 'rgba(0, 180, 216, 0.4)';
-                ctx.lineWidth = 2;
-                ctx.shadowColor = 'rgba(0, 180, 216, 0.8)';
-                ctx.shadowBlur = 10;
-
-                for (let i = 0; i < canvas.width / this.patternSize + 1; i++) {
-                    for (let j = 0; j < this.height / this.patternSize; j++) {
-                        const gridX = (this.x % this.patternSize) + i * this.patternSize;
-                        ctx.strokeRect(gridX, this.y + j * this.patternSize, this.patternSize, this.patternSize);
-                    }
-                }
-                
-                ctx.shadowBlur = 0;
-            }
-
-            update() {
-                this.x -= obstacleSpeed;
-            }
-        }
-
-        class Particle {
-            constructor(x, y, color) {
-                this.x = x;
-                this.y = y;
-                this.size = Math.random() * 5 + 1;
-                this.color = color;
-                this.velocityY = Math.random() * -5 - 1;
-                this.velocityX = (Math.random() - 0.5) * 5;
-                this.alpha = 1;
-            }
-
-            draw() {
-                ctx.fillStyle = `rgba(255, 255, 255, ${this.alpha})`;
-                ctx.fillRect(this.x, this.y, this.size, this.size);
-            }
-
-            update() {
-                this.x += this.velocityX;
-                this.y += this.velocityY;
-                this.velocityY += 0.1;
-                this.alpha -= 0.02;
-            }
-        }
-
-        let viagraText = null;
-        let ground;
-        let currentScale = 1;
-
-        // --- Game Logic Functions ---
-        function resizeGame() {
-            const containerWidth = gameContainer.clientWidth;
-            const containerHeight = gameContainer.clientHeight;
-            let newWidth, newHeight;
-
-            if (containerWidth / containerHeight > gameAspectRatio) {
-                newHeight = containerHeight;
-                newWidth = newHeight * gameAspectRatio;
-            } else {
-                newWidth = containerWidth;
-                newHeight = newWidth / gameAspectRatio;
-            }
-
-            canvas.width = newWidth;
-            canvas.height = newHeight;
-            baseGroundLevel = canvas.height - 0.05 * canvas.height;
-            
-            currentScale = isMobileDevice() ? mobileElementScale : 1;
-            
-            // Re-initialize game elements with new dimensions and scaling
-            if (player) {
-                player.size = (0.125 * canvas.height) * currentScale;
-                player.y = baseGroundLevel - player.size;
-            }
-            if (ground) {
-                ground = new InfiniteGround(baseGroundLevel, 0.05 * canvas.height);
-            }
-        }
-
-        function createParticles(x, y, color, count) {
-            for (let i = 0; i < count; i++) {
-                particles.push(new Particle(x, y, color));
-            }
-        }
-
-        function checkCollision() {
-            let currentGroundLevel = baseGroundLevel;
-            let fatalCollision = false;
-
-            for (const obstacle of obstacles) {
-                const playerLeft = player.x;
-                const playerRight = player.x + player.size;
-                const playerTop = player.y;
-                const playerBottom = player.y + player.size;
-                
-                const obstacleLeft = obstacle.x;
-                const obstacleRight = obstacle.x + obstacle.width;
-                const obstacleTop = obstacle.y;
-
-                if (playerRight > obstacleLeft && playerLeft < obstacleRight && playerBottom > obstacleTop) {
-                    if (obstacle.type === 'square' && player.y + player.size <= obstacleTop + player.velocityY + 5 && player.velocityY >= 0) {
-                        currentGroundLevel = obstacleTop;
-                        fatalCollision = false;
-                        player.isJumping = false;
-                        player.velocityY = 0;
-                        if (!obstacle.hasPlayedSound) {
-                            mehdiGiftTrapSound.currentTime = 0;
-                            mehdiGiftTrapSound.play();
-                            obstacle.hasPlayedSound = true;
-                        }
-                    } else {
-                        fatalCollision = true;
-                        break;
-                    }
-                }
-            }
-
-            return { fatal: fatalCollision, ground: currentGroundLevel };
-        }
-        
-        function checkPillCollision() {
-            for (let i = pills.length - 1; i >= 0; i--) {
-                const pill = pills[i];
-                if (!pill.collected) {
-                    const playerLeft = player.x;
-                    const playerRight = player.x + player.size;
-                    const playerTop = player.y;
-                    const playerBottom = player.y + player.size;
-                    
-                    const pillLeft = pill.x;
-                    const pillRight = pill.x + pill.size;
-                    const pillTop = pill.y;
-                    const pillBottom = pill.y + pill.size;
-
-                    if (playerRight > pillLeft && playerLeft < pillRight && playerBottom > pillTop && playerTop < pillBottom) {
-                        pill.collected = true;
-                        mehdiGiftTrapSound.currentTime = 0;
-                        mehdiGiftTrapSound.play();
-                        viagraText = new FloatingText(pill.x + pill.size / 2, pill.y - 10, 'Viagra');
-                        return;
-                    }
-                }
-            }
-        }
-
-        function generateWorldElements(timestamp) {
-            if (timestamp - timeSinceLastObstacle > Math.random() * 2500 + 1500) {
-                let obstacle;
-                const obstacleSize = (0.1 * canvas.height) * currentScale;
-                if (Math.random() > 0.5) {
-                    obstacle = new Obstacle(canvas.width, baseGroundLevel - obstacleSize, obstacleSize, obstacleSize, 'triangle');
-                } else {
-                    obstacle = new Obstacle(canvas.width, baseGroundLevel - obstacleSize, obstacleSize, obstacleSize, 'square');
-                }
-                obstacles.push(obstacle);
-                timeSinceLastObstacle = timestamp;
-            }
-
-            if (timestamp - timeSinceLastPill > 15000) {
-                const pillSize = (0.05 * canvas.height) * currentScale;
-                const pill = new Pill(canvas.width + 100, baseGroundLevel - pillSize, pillSize);
-                pills.push(pill);
-                timeSinceLastPill = timestamp;
-            }
-        }
-
-        // Main game loop
-        function gameLoop(timestamp) {
-            let offsetX = 0;
-            let offsetY = 0;
-            if (shakeTime > 0) {
-                offsetX = Math.random() * 5 - 2.5;
-                offsetY = Math.random() * 5 - 2.5;
-                shakeTime--;
-            }
-            ctx.setTransform(1, 0, 0, 1, offsetX, offsetY);
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
-            ground.update();
-            ground.draw();
-
-            if (isGameRunning) {
-                generateWorldElements(timestamp);
-
-                const collisionResult = checkCollision();
-                if (collisionResult.fatal) {
-                    isGameRunning = false;
-                    isGameOverState = true;
-                    player.isVisible = false;
-                    createParticles(player.x + player.size / 2, player.y + player.size / 2, '#ff0000', 500);
-                    endGame();
-                }
-                player.update(collisionResult.ground);
-                player.draw();
-
-                for (let i = obstacles.length - 1; i >= 0; i--) {
-                    const obstacle = obstacles[i];
-                    obstacle.update();
-                    obstacle.draw();
-
-                    if (obstacle.x + obstacle.width < 0) {
-                        obstacles.splice(i, 1);
-                        score++;
-                    }
-                }
-                
-                checkPillCollision();
-                for (let i = pills.length - 1; i >= 0; i--) {
-                    const pill = pills[i];
-                    pill.update();
-                    pill.draw();
-                    if (pill.x + pill.size < 0 || pill.collected) {
-                        pills.splice(i, 1);
-                    }
-                }
-                
-            }
-            
-            for (let i = particles.length - 1; i >= 0; i--) {
-                const particle = particles[i];
-                particle.update();
-                particle.draw();
-                if (particle.alpha <= 0) {
-                    particles.splice(i, 1);
-                }
-            }
-            
-            if (viagraText) {
-                viagraText.update();
-                viagraText.draw();
-                if (viagraText.alpha <= 0) {
-                    viagraText = null;
-                }
-            }
-
-            if (isGameRunning) {
-                 scoreDisplay.textContent = score;
-            }
-
-
-            if (isGameOverState && particles.length === 0) {
-                gameOverScreen.style.display = 'flex';
-                return;
-            }
-
-            requestAnimationFrame(gameLoop);
-        }
-
-        // --- Game Flow Control ---
-        function startGame() {
-            startScreen.style.display = 'none';
-            gameOverScreen.style.display = 'none';
-            isGameRunning = true;
-            isGameOverState = false;
-            score = 0;
-            scoreDisplay.textContent = '0';
-            resizeGame(); // Re-size everything at the start
-            const playerSize = (0.125 * canvas.height) * currentScale;
-            player = new Player(0.0625 * canvas.width, baseGroundLevel - playerSize, playerSize);
-            obstacles = [];
-            pills = [];
-            viagraText = null;
-            ground = new InfiniteGround(baseGroundLevel, 0.05 * canvas.height);
-            particles = [];
-            obstacleSpeed = (0.00625 * canvas.width) * currentScale;
-            timeSinceLastObstacle = 0;
-            timeSinceLastPill = performance.now();
-            bgm.currentTime = 0;
-            bgm.play();
-            requestAnimationFrame(gameLoop);
-        }
-
-        function endGame() {
-            bgm.pause();
-            gameOverSound.currentTime = 0;
-            gameOverSound.play();
-            finalScoreDisplay.textContent = score;
-            shakeTime = 30;
-        }
-        
-        function handleJump() {
-            if (isGameRunning) {
-                player.jump();
-            } else if (startScreen.style.display === 'flex' || gameOverScreen.style.display === 'flex') {
-                startGame();
-            }
-        }
-        
-        // --- Event Listeners ---
-        window.addEventListener('keydown', (e) => {
-            if (e.code === 'Space') {
-                e.preventDefault();
-                handleJump();
-            }
+    obstacles = [
+        // Poop
+        { x: 400, y: 350, type: 'poop', width: 32, height: 32 },
+        { x: 1750, y: 290, type: 'poop', width: 32, height: 32 },
+        { x: 2700, y: 350, type: 'poop', width: 32, height: 32 },
+        { x: 2800, y: 350, type: 'poop', width: 32, height: 32 },
+        // Rocks (static obstacles, not collected)
+        { x: 950, y: 350, type: 'rock_obstacle', width: 32, height: 32 },
+    ];
+    
+    // Generate some clouds for parallax effect
+    clouds = [];
+    for(let i=0; i < 15; i++) {
+        clouds.push({
+            x: Math.random() * 4000, // Spread clouds across the level
+            y: Math.random() * 150,
+            scale: 0.5 + Math.random() * 0.5, // Random size
+            speed: 0.1 + Math.random() * 0.2 // Random speed
         });
-        
-        jumpButton.addEventListener('click', () => {
-            handleJump();
-        });
+    }
+}
 
-        canvas.addEventListener('click', () => {
-             if (!isMobileDevice()) {
-                handleJump();
-            }
-        });
-        
-        startGameBtn.addEventListener('click', startGame);
-        retryBtn.addEventListener('click', startGame);
+// UI button definitions
+const uiButtons = {
+    // Menu screen
+    start:       { x: config.width / 2 - 96, y: 150, w: 192, h: 48, asset: assets.btn_long, text: 'START' },
+    highScore:   { x: config.width / 2 - 96, y: 220, w: 192, h: 48, asset: assets.btn_long, text: 'HIGH SCORE' },
+    // Gameplay screen
+    jump:        { x: config.width - 150,    y: config.height - 150, w: 92, h: 92, asset: assets.btn_jump, text: 'JUMP' },
+    pause:       { x: config.width - 120,    y: 20, w: 100, h: 32, asset: assets.btn_pause, text: 'PAUSE' },
+    sound:       { x: config.width - 50,     y: 80, w: 32, h: 32 },
+    // Paused/Game Over screen
+    resume:      { x: config.width / 2 - 96, y: 150, w: 192, h: 48, asset: assets.btn_long, text: 'RESUME' },
+    restart:     { x: config.width / 2 - 96, y: 150, w: 192, h: 48, asset: assets.btn_long, text: 'RESTART' },
+    menu:        { x: config.width / 2 - 96, y: 220, w: 192, h: 48, asset: assets.btn_long, text: 'MENU' }
+};
 
-        // Responsive event listeners
-        window.addEventListener('resize', checkOrientation);
-        window.addEventListener('orientationchange', checkOrientation);
 
-        function checkOrientation() {
-            const isMobile = window.matchMedia("(max-width: 800px)").matches;
-            const isPortrait = window.innerHeight > window.innerWidth;
+// --- 5. GAME LOGIC & UPDATES ---
+function update(dt) {
+    if (gameState !== 'PLAYING') return;
 
-            if (isMobile && isPortrait) {
-                gameContainer.style.display = 'none';
-                startScreen.style.display = 'none';
-                gameOverScreen.style.display = 'none';
-                jumpButton.style.display = 'none';
-            } else {
-                gameContainer.style.display = 'flex';
-                resizeGame();
-                if (isMobile) {
-                    jumpButton.style.display = 'block';
-                } else {
-                    jumpButton.style.display = 'none';
-                }
-
-                if (!isGameRunning && !isGameOverState) {
-                    startScreen.style.display = 'flex';
-                    gameOverScreen.style.display = 'none';
-                } else if (isGameOverState) {
-                    startScreen.style.display = 'none';
-                    gameOverScreen.style.display = 'flex';
-                } else {
-                    startScreen.style.display = 'none';
-                    gameOverScreen.style.display = 'none';
-                }
+    // --- Update Player ---
+    // Horizontal movement (auto-runner)
+    player.vx = config.playerSpeed;
+    player.x += player.vx;
+    
+    // Vertical movement (gravity)
+    player.vy += config.gravity;
+    player.y += player.vy;
+    player.isGrounded = false;
+    
+    // Collision with platforms
+    platforms.forEach(p => {
+        if (player.x + player.width > p.x &&
+            player.x < p.x + p.width &&
+            player.y + player.height > p.y &&
+            player.y < p.y + p.height) 
+        {
+            // If falling onto a platform
+            if (player.vy > 0 && (player.y + player.height - player.vy) <= p.y) {
+                 player.y = p.y - player.height;
+                 player.vy = 0;
+                 player.isGrounded = true;
             }
         }
+    });
+    
+    // Collision with items
+    items.forEach((item, index) => {
+        if (player.x < item.x + item.width && player.x + player.width > item.x &&
+            player.y < item.y + item.height && player.y + player.height > item.y)
+        {
+            // Collect mashroom
+            if (item.type === 'mashroom') {
+                player.faceState = 'relaxed';
+                player.faceTimer = 3; // Face changes for 3 seconds
+                score += config.mushroomBonus;
+                // play sound: playSound('powerup');
+            }
+            items.splice(index, 1);
+        }
+    });
+    
+    // Collision with obstacles
+    obstacles.forEach((obstacle, index) => {
+        if (obstacle.type === 'poop' &&
+            player.x < obstacle.x + obstacle.width && player.x + player.width > obstacle.x &&
+            player.y < obstacle.y + obstacle.height && player.y + player.height > obstacle.y)
+        {
+            // Take damage from poop
+            player.health--;
+            score -= config.poopPenalty;
+            if (score < 0) score = 0;
+            player.faceState = 'losing';
+            player.faceTimer = 0.5; // "Mad" face flashes for 0.5 seconds
+            // play sound: playSound('damage');
+            obstacles.splice(index, 1); // Remove the poop
+            if (player.health <= 0) {
+                gameOver();
+            }
+        }
+    });
 
-        // Initial check on page load
-        checkOrientation();
-    </script>
+    // Face state timer
+    if (player.faceTimer > 0) {
+        player.faceTimer -= dt;
+        if (player.faceTimer <= 0) {
+            player.faceState = 'playing';
+            player.faceTimer = 0;
+        }
+    }
+    
+    // Check for falling off-screen
+    if (player.y > config.height) {
+        gameOver();
+    }
+    
+    // Update score
+    score += config.scorePerSecond * dt;
+
+    // Update camera
+    camera.update(player);
+}
+
+// --- 6. RENDERING (DRAWING TO CANVAS) ---
+function draw() {
+    // Clear canvas
+    ctx.clearRect(0, 0, config.width, config.height);
+
+    // Draw parallax background
+    ctx.save();
+    // Sky
+    ctx.fillStyle = '#7ab3f1';
+    ctx.fillRect(0,0,config.width, config.height);
+    // Clouds
+    clouds.forEach(cloud => {
+        const cloudX = (cloud.x - camera.x * cloud.speed) % (config.width + 200) - 100; // Looping clouds
+        const cloudW = assets.cloud.width * cloud.scale;
+        const cloudH = assets.cloud.height * cloud.scale;
+        ctx.drawImage(assets.cloud, cloudX, cloud.y, cloudW, cloudH);
+    });
+    ctx.restore();
+
+
+    // Translate canvas for camera
+    ctx.save();
+    ctx.translate(-camera.x, 0);
+
+    // --- Draw Game World ---
+    // Platforms
+    platforms.forEach(p => {
+        const pattern = ctx.createPattern(assets.dirt_tile, 'repeat');
+        ctx.fillStyle = pattern;
+        ctx.fillRect(p.x, p.y + 10, p.width, p.height-10);
+        
+        const topPattern = ctx.createPattern(assets.ground_tile, 'repeat');
+        ctx.fillStyle = topPattern;
+        ctx.fillRect(p.x, p.y, p.width, 16);
+    });
+    // Items and Obstacles
+    [...items, ...obstacles].forEach(obj => {
+        if (assets[obj.type]) {
+             ctx.drawImage(assets[obj.type], obj.x, obj.y, obj.width, obj.height);
+        }
+    });
+    
+    // Player
+    let playerFace;
+    switch (player.faceState) {
+        case 'losing': playerFace = assets.player_losing; break;
+        case 'relaxed': playerFace = assets.player_relaxed; break;
+        default: playerFace = assets.player_playing;
+    }
+    if (playerFace) {
+        ctx.drawImage(playerFace, player.x, player.y, player.width, player.height);
+    }
+    
+    ctx.restore(); // Restore canvas from camera translation
+
+    // --- Draw UI ---
+    switch(gameState) {
+        case 'MENU':
+            drawOverlay();
+            drawButton(uiButtons.start);
+            drawButton(uiButtons.highScore);
+            ctx.fillStyle = 'white';
+            ctx.font = "32px 'Courier New', monospace";
+            ctx.textAlign = 'center';
+            ctx.fillText(`High Score: ${Math.floor(highScore)}`, config.width / 2, 320);
+            break;
+        case 'PLAYING':
+            drawHUD();
+            drawButton(uiButtons.jump);
+            drawButton(uiButtons.pause);
+            drawButton(uiButtons.sound);
+            break;
+        case 'PAUSED':
+            drawHUD(); // Show game state underneath
+            drawOverlay();
+            drawButton(uiButtons.resume);
+            drawButton(uiButtons.menu);
+            break;
+        case 'GAMEOVER':
+            drawHUD();
+            drawOverlay();
+            drawButton(uiButtons.restart);
+            drawButton(uiButtons.menu);
+            ctx.fillStyle = 'white';
+            ctx.font = "bold 48px 'Courier New', monospace";
+            ctx.textAlign = 'center';
+            ctx.fillText('GAME OVER', config.width / 2, 110);
+            if(score > highScore) {
+                 ctx.font = "24px 'Courier New', monospace";
+                 ctx.fillText('New High Score!', config.width / 2, 320);
+            }
+            break;
+    }
+}
+
+function drawHUD() {
+    // Health
+    for(let i = 0; i < player.health; i++) {
+        ctx.drawImage(assets.heart, 20 + i * 40, 20, 32, 32);
+    }
+    // Score
+    ctx.fillStyle = 'white';
+    ctx.font = "24px 'Courier New', monospace";
+    ctx.textAlign = 'left';
+    ctx.fillText(`Score: ${Math.floor(score)}`, 20, 70);
+}
+
+function drawOverlay() {
+    ctx.fillStyle = 'rgba(110, 85, 61, 0.7)'; // Brownish overlay
+    ctx.fillRect(0, 0, config.width, config.height);
+}
+
+function drawButton(btn) {
+    if(btn.asset) {
+        ctx.drawImage(btn.asset, btn.x, btn.y, btn.w, btn.h);
+    }
+    // Specific drawing for sound icon
+    if(btn === uiButtons.sound) {
+        const soundIcon = soundOn ? assets.icon_sound_on : assets.icon_sound_off;
+        if(soundIcon) ctx.drawImage(soundIcon, btn.x, btn.y, btn.w, btn.h);
+        return;
+    }
+    
+    if(btn.text === 'JUMP') {
+        ctx.fillStyle = 'black';
+        ctx.font = "bold 20px 'Courier New', monospace";
+        ctx.textAlign = 'center';
+        ctx.fillText('JUMP', btn.x + btn.w / 2, btn.y + btn.h/2 - 10);
+        ctx.font = "14px 'Courier New', monospace";
+        ctx.fillText('Button', btn.x + btn.w / 2, btn.y + btn.h/2 + 10);
+        return;
+    }
+    
+    if (btn.text) {
+        ctx.fillStyle = 'black';
+        ctx.font = "bold 24px 'Courier New', monospace";
+        ctx.textAlign = 'center';
+        ctx.fillText(btn.text, btn.x + btn.w / 2, btn.y + btn.h / 2 + 8);
+    }
+}
+
+// --- 7. GAME STATE MANAGEMENT ---
+function resetGame() {
+    score = 0;
+    camera.x = 0;
+    resetPlayer();
+    generateLevel();
+}
+
+function startGame() {
+    resetGame();
+    gameState = 'PLAYING';
+}
+
+function gameOver() {
+    // playSound('gameover');
+    gameState = 'GAMEOVER';
+    if(score > highScore) {
+        highScore = score;
+        localStorage.setItem('blockHeadHighScore', highScore);
+    }
+}
+
+
+// --- 8. INPUT HANDLING ---
+function handleInput(x, y) {
+    function isInside(pos, rect) {
+        return pos.x > rect.x && pos.x < rect.x + rect.w && pos.y > rect.y && pos.y < rect.y + rect.h;
+    }
+
+    if(gameState === 'PLAYING') {
+        if(isInside({x,y}, uiButtons.jump)) {
+            if(player.isGrounded) {
+                player.vy = -config.jumpForce;
+                // playSound('jump');
+            }
+        }
+        if(isInside({x,y}, uiButtons.pause)) {
+            gameState = 'PAUSED';
+            // playSound('pause');
+        }
+        if(isInside({x,y}, uiButtons.sound)) {
+            soundOn = !soundOn;
+        }
+    } else if (gameState === 'PAUSED') {
+         if(isInside({x,y}, uiButtons.resume)) {
+            gameState = 'PLAYING';
+        }
+        if(isInside({x,y}, uiButtons.menu)) {
+            gameState = 'MENU';
+        }
+    } else if (gameState === 'MENU') {
+        if(isInside({x,y}, uiButtons.start)) {
+            startGame();
+        }
+    } else if (gameState === 'GAMEOVER') {
+         if(isInside({x,y}, uiButtons.restart)) {
+            startGame();
+        }
+        if(isInside({x,y}, uiButtons.menu)) {
+            gameState = 'MENU';
+        }
+    }
+}
+
+function setupInputListeners() {
+    function getMousePos(canvas, evt) {
+        const rect = canvas.getBoundingClientRect();
+        return {
+            x: (evt.clientX - rect.left) / rect.width * config.width,
+            y: (evt.clientY - rect.top) / rect.height * config.height
+        };
+    }
+    
+    // Mouse Events
+    canvas.addEventListener('mousedown', (e) => {
+        isMouseDown = true;
+        const pos = getMousePos(canvas, e);
+        handleInput(pos.x, pos.y);
+    });
+    
+    // Touch Events for Mobile
+    canvas.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        isMouseDown = true;
+        const touch = e.touches[0];
+        const pos = getMousePos(canvas, touch);
+        handleInput(pos.x, pos.y);
+    }, false);
+}
+
+
+// --- 9. MAIN GAME LOOP ---
+let lastTime = 0;
+function gameLoop(timestamp) {
+    const dt = (timestamp - lastTime) / 1000;
+    lastTime = timestamp;
+    
+    if(gameState === 'PLAYING') {
+      update(dt);
+    }
+    
+    draw();
+
+    requestAnimationFrame(gameLoop);
+}
+
+
+// --- 10. INITIALIZATION ---
+function init() {
+    // Resize canvas
+    canvas.width = config.width;
+    canvas.height = config.height;
+    
+    // Set initial objects
+    resetPlayer();
+    generateLevel();
+    
+    // Set up listeners
+    setupInputListeners();
+    
+    // Start the game loop
+    console.log("Game assets loaded. Starting game loop.");
+    lastTime = performance.now();
+    requestAnimationFrame(gameLoop);
+}
+
+// Wait for all assets to load, then start the game.
+loadAssets(init);
+
+</script>
+
 </body>
 </html>
